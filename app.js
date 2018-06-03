@@ -1,4 +1,38 @@
 // Storage Controller
+const StorageCtrl = (function(){
+  // Public methods
+  return {
+    storeItem: function(item){
+      let items;
+      // Check if any items in ls
+      if(localStorage.getItem('items') === null){
+        items = [];
+        // Push new item
+        items.push(item);
+        // Set ls
+        localStorage.setItem('items', JSON.stringify(items));
+      } else {
+        // Get what is already in ls
+        items = JSON.parse(localStorage.getItem('items'));
+
+        // Push new item
+        items.push(item);
+
+        // Re set ls
+        localStorage.setItem('items', JSON.stringify(items));
+      }
+    },
+    getItemsFromStorage: function(){
+      let items;
+      if(localStorage.getItem('items') === null){
+        items = [];
+      } else {
+        items = JSON.parse(localStorage.getItem('items'));
+      }
+      return items;
+    }
+  }
+})();
 
 
 // Item Controller
@@ -12,11 +46,12 @@ const ItemCtrl = (function(){
 
   // Data Structure / State
   const data = {
-    items: [
-      // {id: 0, name: 'Steak Dinner', calories: 1200},
-      // {id: 1, name: 'Cookie', calories: 400},
-      // {id: 2, name: 'Eggs', calories: 300}
-    ],
+    // items: [
+    //   // {id: 0, name: 'Steak Dinner', calories: 1200},
+    //   // {id: 1, name: 'Cookie', calories: 400},
+    //   // {id: 2, name: 'Eggs', calories: 300}
+    // ],
+    items: StorageCtrl.getItemsFromStorage(),
     currentItem: null,
     totalCalories: 0
   }
@@ -189,7 +224,7 @@ const UICtrl = (function(){
     deleteListItem: function(id){
       const itemID = `#item-${id}`;
       const item = document.querySelector(itemID);
-      item.remove(); 
+      item.remove();
     },
     clearInput: function(){
       document.querySelector(UISelectors.itemNameInput).value = '';
@@ -238,7 +273,7 @@ const UICtrl = (function(){
 
 
 // App Controller
-const App = (function(ItemCtrl, UICtrl){
+const App = (function(ItemCtrl, StorageCtrl, UICtrl){
   // Load event listeners
   const loadEventListeners = function(){
     // Get UI selectors
@@ -256,25 +291,19 @@ const App = (function(ItemCtrl, UICtrl){
     });
 
     // Edit icon click event
-    document.querySelector(UISelectors.itemList).addEventListener('click',
-    itemEditClick);
+    document.querySelector(UISelectors.itemList).addEventListener('click', itemEditClick);
 
     // Update item event
-    document.querySelector(UISelectors.updateBtn).addEventListener('click',
-    itemUpdateSubmit);
+    document.querySelector(UISelectors.updateBtn).addEventListener('click', itemUpdateSubmit);
 
     // Delete item event
-    document.querySelector(UISelectors.deleteBtn).addEventListener('click',
-    itemDeleteSubmit);
+    document.querySelector(UISelectors.deleteBtn).addEventListener('click', itemDeleteSubmit);
 
      // Back button event
-     document.querySelector(UISelectors.backBtn).addEventListener('click',
-    UICtrl.clearEditState);
+     document.querySelector(UISelectors.backBtn).addEventListener('click', UICtrl.clearEditState);
 
-    // Clear items event
-    document.querySelector(UISelectors.clearBtn).addEventListener('click',
-    clearAllItemsClick);
-
+     // Clear items event
+    document.querySelector(UISelectors.clearBtn).addEventListener('click', clearAllItemsClick);
   }
 
   // Add item submit
@@ -294,6 +323,9 @@ const App = (function(ItemCtrl, UICtrl){
       const totalCalories = ItemCtrl.getTotalCalories();
       // Add total calories to UI
       UICtrl.showTotalCalories(totalCalories);
+
+      //Store in localStorage
+      StorageCtrl.storeItem(newItem);
 
       // Clear fields
       UICtrl.clearInput();
@@ -366,8 +398,9 @@ const App = (function(ItemCtrl, UICtrl){
 
     UICtrl.clearEditState();
 
-    e.preventDefault(); 
+    e.preventDefault();
   }
+
 
   // Clear items event
   const clearAllItemsClick = function(){
@@ -384,6 +417,7 @@ const App = (function(ItemCtrl, UICtrl){
 
     // Hide UL
     UICtrl.hideList();
+    
   }
 
   // Public methods
@@ -413,7 +447,7 @@ const App = (function(ItemCtrl, UICtrl){
     }
   }
   
-})(ItemCtrl, UICtrl);
+})(ItemCtrl, StorageCtrl, UICtrl);
 
 // Initialize App
 App.init();
